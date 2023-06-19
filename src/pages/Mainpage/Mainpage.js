@@ -5,16 +5,14 @@ import { useContext } from 'react';
 import { RequestContext } from '../../utils/ContextApi/RequestContext';
 
 const Mainpage = () => {
-  const { isAuthenticated, handleOwnerNameChange, handleGithubTokenChange } = useContext(RequestContext);
+  const { isAuthenticated,handleLogin } = useContext(RequestContext);
   const navigate = useNavigate();
   const [ownerName, setOwnerName] = React.useState('');
   const [githubToken, setGithubToken] = React.useState('');
 
   const handleClick = () => {
-    if (ownerName && githubToken) {
-      handleOwnerNameChange(ownerName);
-      handleGithubTokenChange(githubToken);
-    }
+
+    handleLogin(ownerName, githubToken);
   };
 
   React.useEffect(() => {

@@ -217,6 +217,11 @@ const RequestProvider = ({ children }) => {
     setOctokit(null);
     navigate('/');
   };
+  const handleLogin = (ownerName, githubToken) => {
+    setOwnerName(ownerName);
+    setGithubToken(githubToken);
+    
+  };
 
 
   //ALL CONTEXT VALUES WHICH ARE EXPORTED
@@ -237,6 +242,7 @@ const RequestProvider = ({ children }) => {
     handleGithubTokenChange,
     handleOwnerNameChange,
     handleLogout,
+    handleLogin,
   };
 
   return <RequestContext.Provider value={contextValues}>{children}</RequestContext.Provider>;
