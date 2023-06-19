@@ -1,7 +1,17 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { TextField, Button, MenuItem } from '@mui/material';
+import { RequestContext } from '../../utils/ContextApi/RequestContext';
 
-const MergeForm = ({ repositories, branches, onMergeBranch, onSelectRepo, selectedRepo }) => {
+const MergeForm = () => {
+  const {
+    repositories,
+    selectedRepos,
+    selectedBranches,
+    handleReposSelect,
+    handleBranchesSelect,
+    handleMergeBranch,
+    handleRepoSelect,
+  } = useContext(RequestContext);
   const [fromBranch, setFromBranch] = useState('');
   const [toBranch, setToBranch] = useState('');
 
@@ -13,8 +23,8 @@ const MergeForm = ({ repositories, branches, onMergeBranch, onSelectRepo, select
     setToBranch(event.target.value);
   };
 
-  const handleMergeBranch = () => {
-    onMergeBranch(selectedRepo, fromBranch, toBranch);
+  const handleMergeBranchHandler = () => {
+    handleMergeBranch(selectedRepos, fromBranch, toBranch);
   };
 
   return (
@@ -23,14 +33,17 @@ const MergeForm = ({ repositories, branches, onMergeBranch, onSelectRepo, select
       <TextField
         select
         label="Select Repository"
-        value={selectedRepo}
-        onChange={(e) => onSelectRepo(e.target.value)}
+        value={selectedRepos}
+        onChange={(e) => handleReposSelect(e.target.value)}
         fullWidth
         margin="normal"
+        SelectProps={{
+          multiple: true,
+        }}
       >
         {repositories.map((repo) => (
-          <MenuItem key={repo} value={repo}>
-            {repo}
+          <MenuItem key={repo.name} value={repo.name}>
+            {repo.name}
           </MenuItem>
         ))}
       </TextField>
@@ -41,10 +54,13 @@ const MergeForm = ({ repositories, branches, onMergeBranch, onSelectRepo, select
         onChange={handleFromBranchChange}
         fullWidth
         margin="normal"
+        SelectProps={{
+          multiple: true,
+        }}
       >
-        {branches.map((branch) => (
-          <MenuItem key={branch} value={branch}>
-            {branch}
+        {selectedBranches.map((branch) => (
+          <MenuItem key={branch.name} value={branch.name}>
+            {branch.name}
           </MenuItem>
         ))}
       </TextField>
@@ -55,14 +71,17 @@ const MergeForm = ({ repositories, branches, onMergeBranch, onSelectRepo, select
         onChange={handleToBranchChange}
         fullWidth
         margin="normal"
+        SelectProps={{
+          multiple: true,
+        }}
       >
-        {branches.map((branch) => (
-          <MenuItem key={branch} value={branch}>
-            {branch}
+        {selectedBranches.map((branch) => (
+          <MenuItem key={branch.name} value={branch.name}>
+            {branch.name}
           </MenuItem>
         ))}
       </TextField>
-      <Button variant="contained" onClick={handleMergeBranch}>
+      <Button variant="contained" onClick={handleMergeBranchHandler}>
         Merge Branch
       </Button>
     </>
