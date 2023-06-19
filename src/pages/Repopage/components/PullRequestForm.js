@@ -14,12 +14,6 @@ const PullRequestForm = () => {
   } = useContext(RequestContext);
   const [toBranch, setToBranch] = useState('');
   const [comments, setComments] = useState('');
-  const [allListOnlyName, setAllListOnlyName] = useState([]);
-
-  React.useEffect(() => {
-    let allListOnlyName = selectedReposBranch.map((item) => item.name);
-    setAllListOnlyName(allListOnlyName);
-  }, [selectedReposBranch]);
 
   const handleToBranchChange = (event) => {
     setToBranch(event.target.value);
@@ -30,40 +24,45 @@ const PullRequestForm = () => {
   };
 
   const handleRaisePullRequestHandler = () => {
-
-
-    selectedBranches.map((branch) => {
+    selectedBranches.forEach((branch) => {
       handleRaisePullRequest(branch.repoName, branch.name, toBranch, comments);
     });
-
-
-    // handleRaisePullRequest(selectedRepos, fromBranch, toBranch);
-
-
   };
 
   const handleFromBranchChangeHandler = (event) => {
-    let allWithFullData= selectedReposBranch.filter((item) => event.includes(item.name));
-    console.log("allWithFullData",allWithFullData)
+    const allWithFullData = selectedReposBranch.filter((item) => event.includes(item.name));
     handleBranchesSelect(allWithFullData);
   };
 
-
-
   return (
-    <>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: 'auto',
+        padding: '16px',
+        width: '80%',
+        backgroundColor: '#f8f8f8',
+        borderRadius: '4px',
+      }}
+    >
       <h1>Raise Pull Request</h1>
 
-    <MultipleSelectChipCity name="Select From Branch" allList={allListOnlyName} setAllSelected={handleFromBranchChangeHandler} />
+      <MultipleSelectChipCity
+        name="Select From Branch"
+        allList={selectedReposBranch}
+        setAllSelected={handleFromBranchChangeHandler}
+      />
 
-    {/* enter name of the base branch */}
       <TextField
-      label="To Branch"
-      value={toBranch}
-      onChange={handleToBranchChange}
-      fullWidth
-      margin="normal"
-    />
+        label="To Branch"
+        value={toBranch}
+        onChange={handleToBranchChange}
+        fullWidth
+        margin="normal"
+      />
       <TextField
         label="Comments"
         value={comments}
@@ -75,11 +74,7 @@ const PullRequestForm = () => {
       <Button variant="contained" onClick={handleRaisePullRequestHandler}>
         Raise Pull Request
       </Button>
-
-
-
-      
-    </>
+    </div>
   );
 };
 

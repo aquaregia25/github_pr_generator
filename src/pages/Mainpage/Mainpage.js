@@ -1,54 +1,67 @@
-import { TextField } from '@mui/material'
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useContext } from 'react'
-import { RequestContext } from '../../utils/ContextApi/RequestContext'
+import React from 'react';
+import { TextField, Button, Typography, Box } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { RequestContext } from '../../utils/ContextApi/RequestContext';
 
 const Mainpage = () => {
-  const { isAuthenticated, handleOwnerNameChange,handleGithubTokenChange } = useContext(RequestContext)
-  const navigate = useNavigate()
-  const [ownerName, setOwnerName] = React.useState('')
-  const [githubToken, setGithubToken] = React.useState('')
-    
+  const { isAuthenticated, handleOwnerNameChange, handleGithubTokenChange } = useContext(RequestContext);
+  const navigate = useNavigate();
+  const [ownerName, setOwnerName] = React.useState('');
+  const [githubToken, setGithubToken] = React.useState('');
+
   const handleClick = () => {
     if (ownerName && githubToken) {
-      handleOwnerNameChange(ownerName)
-      handleGithubTokenChange(githubToken)
+      handleOwnerNameChange(ownerName);
+      handleGithubTokenChange(githubToken);
     }
-  }
+  };
 
   React.useEffect(() => {
     if (isAuthenticated === true) {
-      navigate('/repository')
+      navigate('/repository');
     }
-
-    
-  }, [isAuthenticated, navigate])
-
+  }, [isAuthenticated, navigate]);
 
   return (
-    <>
-    <TextField 
-      label="Enter Owner Name (Gihub Username)"
-      variant="outlined"
-      fullWidth
-      margin="normal"
-      value={ownerName}
-      onChange={(e)=>setOwnerName(e.target.value)}
-    />
-    <TextField
-      label="Enter Github Token"
-      variant="outlined"
-      fullWidth
-      margin="normal"
-      value={githubToken}
-      onChange={(e)=>setGithubToken(e.target.value)}
-    />
-    <button onClick={handleClick}>Submit</button>
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      minHeight="100vh"
+      p={3}
+      bgcolor="#f0f0f0" // Set the background color
+    >
+      <Typography variant="h4" component="h1" gutterBottom color="primary"> {/* Set the color */}
+        Enter GitHub Owner Name and Token
+      </Typography>
+      <Box mt={3} width={400}> {/* Increase the width */}
+        <TextField
+          label="Enter Owner Name (GitHub Username)"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          value={ownerName}
+          onChange={(e) => setOwnerName(e.target.value)}
+          color="secondary" // Set the color
+        />
+        <TextField
+          label="Enter GitHub Token"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          value={githubToken}
+          onChange={(e) => setGithubToken(e.target.value)}
+          color="secondary"
+          type="password"
+        />
+        <Button variant="contained" color="primary" fullWidth onClick={handleClick}>
+          Submit
+        </Button>
+      </Box>
+    </Box>
+  );
+};
 
-</>
-
-  )
-}
-
-export default Mainpage
+export default Mainpage;
