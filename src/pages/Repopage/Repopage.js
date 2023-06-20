@@ -2,7 +2,6 @@ import React from 'react';
 import { Container, Typography, Grid,Button } from '@mui/material';
 import RepositoryForm from './components/CreateRepositoryForm';
 import BranchForm from './components/BranchForm';
-import MergeForm from './MergeForm';
 import PullRequestForm from './components/PullRequestForm';
 import SelectRepository from './components/SelectRepositoryForm';
 import { useContext } from 'react';
@@ -61,7 +60,7 @@ const RepositoryPage = () => {
         borderRadius: '4px',
       }}
     >
-      <Grid container alignItems="center" sx={{justifyContent:"center"}}  spacing={2}>
+      <Grid container alignItems="center" sx={{justifyContent:"space-between"}}  spacing={2}>
         <Grid item>
           <Typography variant="h4" component="h1">
             Hello {ownerDetails?.login}

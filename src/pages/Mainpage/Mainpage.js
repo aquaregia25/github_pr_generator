@@ -32,10 +32,10 @@ const Mainpage = () => {
       bgcolor="#f0f0f0" // Set the background color
     >
       <Typography variant="h4" component="h1" gutterBottom color="primary"> {/* Set the color */}
-        Enter GitHub Owner Name and Token
+        Enter GitHub Your Token
       </Typography>
       <Box mt={3} width={400}> {/* Increase the width */}
-        <TextField
+        {/* <TextField
           label="Enter Owner Name (GitHub Username)"
           variant="outlined"
           fullWidth
@@ -43,7 +43,7 @@ const Mainpage = () => {
           value={ownerName}
           onChange={(e) => setOwnerName(e.target.value)}
           color="secondary" // Set the color
-        />
+        /> */}
         <TextField
           label="Enter GitHub Token"
           variant="outlined"

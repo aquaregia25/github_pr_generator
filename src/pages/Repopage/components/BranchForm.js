@@ -6,6 +6,7 @@ const BranchForm = () => {
   const {
     repositories,
     selectedRepos,
+    selectedReposBranch,
     handleReposSelect,
     handleAddBranch,
     handleRepoSelect,
@@ -25,6 +26,33 @@ const BranchForm = () => {
   const [restrictUsers, setRestrictUsers] = useState([]);
   const [restrictTeams, setRestrictTeams] = useState([]);
   const [restrictApps, setRestrictApps] = useState([]);
+  const [commonBranches, setCommonBranches] = useState([]);
+
+
+  //extract branches of same name for selected repos
+
+  React.useEffect(() => {
+    let map = new Map();
+    selectedReposBranch.forEach((repo) => {
+      if(map.has(repo.name)){
+        map.set(repo.name,map.get(repo.name)+1);
+      }
+      else{
+        map.set(repo.name,1);
+      }
+    });
+    let commonBranches = [];
+    map.forEach((value,key) => {
+      if(value === selectedRepos.length){
+        commonBranches.push(key);
+      }
+    });
+    setCommonBranches(commonBranches);
+  },[selectedReposBranch]);
+
+
+
+
 
   const handleBranchNameChange = (event) => {
     setBranchName(event.target.value);
@@ -81,12 +109,24 @@ const BranchForm = () => {
       />
 
       <TextField
+        select
         label="Base Branch Name (should be the same in all repos)"
         value={baseBranch}
         onChange={handleBaseBranchChange}
         fullWidth
         margin="normal"
-      />
+      >
+        {
+          commonBranches.length !== 0?  commonBranches?.map((option) => (
+            <MenuItem key={option} value={option}>
+              {option}
+            </MenuItem>
+          )) : <MenuItem value={''}>No common branches found</MenuItem>
+        
+        }
+      
+
+        </TextField>
 
       <FormControlLabel
         control={

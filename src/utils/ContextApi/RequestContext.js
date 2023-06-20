@@ -4,6 +4,7 @@ import { useContext } from 'react';
 import { PopupContext } from './PopupContext';
 import { TrackerContext } from './TrackerContext';
 import { useLocation, useNavigate } from 'react-router-dom/dist';
+import { Octokit } from "octokit";
 
 const RequestContext = createContext();
 
@@ -26,28 +27,30 @@ const RequestProvider = ({ children }) => {
   const [octokit, setOctokit] = useState(null);
 
   // ALL USEEFFECTS
-  useEffect(() => {
-    octokit?.rest?.users?.getAuthenticated().then((response) => {
-      setIsAuthenticated(true);
-      navigate('/repository');
-      setOwnerDetails(response.data);
-    }).catch((error) => {
-      setIsAuthenticated(false);
-      navigate('/');
-      openPopup('Error In Token Login!!','error')
-      addActivityData({time:new Date(),type:"Error In Token Login" ,status:"error",message:error?.message});
-      setOwnerDetails({});
-    });
+  // useEffect(() => {
+  //   octokit?.rest?.users?.getAuthenticated().then((response) => {
+  //     setIsAuthenticated(true);
+  //     navigate('/repository');
+  //     setOwnerDetails(response.data);
+  //     setOwnerName(response.data.login);  // Important
+  //   }).catch((error) => {
+  //     setIsAuthenticated(false);
+  //     navigate('/');
+  //     openPopup('Error In Token Login!!','error')
+  //     addActivityData({time:new Date(),type:"Error In Token Login" ,status:"error",message:error?.message});
+  //     setOwnerDetails({});
+  //   });
 
-  }, [octokit]);
+  // }, [octokit]);
   useEffect(() => {
     if (isAuthenticated === false) {
       navigate('/');
     }
-    else if (isAuthenticated === true) {
+     if (isAuthenticated === true) {
       navigate('/repository');
     }
-  }, [isAuthenticated, navigate, location]);
+  }, [isAuthenticated]);
+
   useEffect(() => {
     if (isAuthenticated)
       fetchRepositories();
@@ -79,9 +82,6 @@ const RequestProvider = ({ children }) => {
 
   }
 
-  const handleOwnerNameChange = (event) => {
-    setOwnerName(event);
-  };
   const handleBranchesSelect = (branches) => {
     setSelectedBraches(branches);
   }
@@ -142,7 +142,7 @@ const RequestProvider = ({ children }) => {
       addActivityData({time:new Date(),type:"Repository created successfully!",status:"success",message:`repository ${repoName} created`});
     } catch (error) {
       // alert('Error creating repository');
-      openPopup('Error creating repository', 'error');
+      openPopup('Error creating repository '+error?.message, 'error');
       addActivityData({time:new Date(),type:"Error creating repository",status:"error",message:error?.message});
     }
   };
@@ -200,23 +200,6 @@ const RequestProvider = ({ children }) => {
   };
 
 
-  const handleMergeBranch = async (repoName, fromBranch, toBranch) => {
-    try {
-      await octokit.request('POST /repos/{owner}/{repo}/merges', {
-        owner: ownerName,
-        repo: repoName,
-        base: toBranch,
-        head: fromBranch,
-      });
-      // alert('Branch merged successfully!');
-      openPopup('Branch merged successfully!', 'success');
-    } catch (error) {
-      // alert('Error merging branch');
-      console.log(error)
-      openPopup("Error: " + error?.message, 'error');
-    }
-  };
-
   const handleRaisePullRequest = async (repoName, fromBranch, toBranch, comments) => {
     try {
       await octokit.request('POST /repos/{owner}/{repo}/pulls', {
@@ -248,15 +231,20 @@ const RequestProvider = ({ children }) => {
     setOctokit(null);
     navigate('/');
   };
-  const handleLogin = (ownerName, githubToken) => {
-    setOwnerName(ownerName);
-    setOctokit(createOctokit(githubToken));
-    // setIsAuthenticated(true);
-    // navigate('/repository');
-
+  const handleLogin = async (ownerName, githubToken) => {
+    try {
+      const octokit = new Octokit({ auth: githubToken });
+      await octokit.rest.users.getAuthenticated();
+      setOctokit(octokit);
+      setIsAuthenticated(true);
+    } catch (error) {
+      openPopup('Error In Token Login!!' +error, 'error');
+      console.log(error);
+      addActivityData({ time: new Date(), type: "Error In Token Login", status: "error", message: error?.message });
+      setOwnerDetails({});
+    }
   };
-
-
+  
   //ALL CONTEXT VALUES WHICH ARE EXPORTED
   const contextValues = {
     repositories,
@@ -269,13 +257,10 @@ const RequestProvider = ({ children }) => {
     handleBranchesSelect,
     handleCreateRepository,
     handleAddBranch,
-    handleMergeBranch,
     handleRaisePullRequest,
-    handleOwnerNameChange,
     handleLogout,
     handleLogin,
   };
-
   return <RequestContext.Provider value={contextValues}>{children}</RequestContext.Provider>;
 };
 
