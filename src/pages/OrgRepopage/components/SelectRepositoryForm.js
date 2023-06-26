@@ -1,10 +1,11 @@
 import React, { useContext, useState, useEffect } from 'react';
 import MultipleSelectChipCity from '../../../containers/MultiSelectField/MultiSelectField';
-import { RequestContext } from '../../../utils/ContextApi/RequestContext';
+// import { RequestContext } from '../../../utils/ContextApi/RequestContext';
+import { OrgRequestContext } from '../../../utils/ContextApi/OrgRequestContext';
 import { Typography } from '@mui/material';
 
 const SelectRepository = () => {
-  const { repositories, handleReposSelect } = useContext(RequestContext);
+  const { repositories, handleReposSelect } = useContext(OrgRequestContext);
 
   const handleReposSelectHandler = (event) => {
     let allWithFullData = repositories.filter((item) => event.includes(item.name));

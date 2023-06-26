@@ -31,7 +31,7 @@ const OrgRequestProvider = ({ children }) => {
 
   useEffect(() => {
     if(isAuthenticated && selectedOrg) {
-      fetchRepositories(selectedOrg);
+      fetchRepositories();
     }
   }, [selectedOrg]);
   
@@ -72,10 +72,10 @@ const OrgRequestProvider = ({ children }) => {
     }
   };
 
-  const fetchRepositories = async (org) => {
+  const fetchRepositories = async () => {
     try {
       const response = await octokit?.request('GET /orgs/{org}/repos', {
-        org: org
+        org: selectedOrg
       });
       const repositories = response.data?.map((item) => {
         return { ...item, searchField: `Name:${item.name} | Desc:${item.description}` };
@@ -120,16 +120,16 @@ const OrgRequestProvider = ({ children }) => {
     setSelectedRepoBranch([]);
     setSelectedBraches([]);
   }
-  const handleAddBranch = async (orgName, repoName, branchName, baseBranch, addRules, rules) => {
+  const handleAddBranch = async ( repoName, branchName, baseBranch, addRules, rules) => {
     try {
       const baseBranchData = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
-        owner: orgName,
+        owner: selectedOrg,
         repo: repoName,
         branch: baseBranch,
       });
   
       await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
-        owner: orgName,
+        owner: selectedOrg,
         repo: repoName,
         ref: `refs/heads/${branchName}`,
         sha: baseBranchData.data.commit.sha,
@@ -139,7 +139,7 @@ const OrgRequestProvider = ({ children }) => {
       addActivityData({time:new Date(),type:"Branch added successfully!",status:"success",message:`branch ${branchName} added to ${repoName}`});
   
       if(addRules){
-        handleAddRules(orgName, repoName, branchName, rules);
+        handleAddRules( repoName, branchName, rules);
       }
   
     } catch (error) {
@@ -147,14 +147,14 @@ const OrgRequestProvider = ({ children }) => {
       addActivityData({time:new Date(),type:"Error adding branch",status:"error",message:error?.message});
     }
   };
-  const handleCreateRepository = async (orgName, repoName) => {
+  const handleCreateRepository = async ( repoName) => {
     try {
       await octokit.request('POST /orgs/{org}/repos', {
-        org: orgName,
+        org: selectedOrg,
         name: repoName,
       });
       openPopup('Repository created successfully!', 'success');
-      fetchRepositories(orgName);
+      fetchRepositories();
       addActivityData({time:new Date(),type:"Repository created successfully!",status:"success",message:`repository ${repoName} created`});
     } catch (error) {
       openPopup('Error creating repository '+error?.message, 'error');
@@ -162,10 +162,10 @@ const OrgRequestProvider = ({ children }) => {
     }
   };
   
-  const handleRaisePullRequest = async (orgName, repoName, fromBranch, toBranch, comments) => {
+  const handleRaisePullRequest = async ( repoName, fromBranch, toBranch, comments) => {
     try {
       await octokit.request('POST /repos/{owner}/{repo}/pulls', {
-        owner: orgName,
+        owner: selectedOrg,
         repo: repoName,
         head: fromBranch,
         base: toBranch,
@@ -182,7 +182,7 @@ const OrgRequestProvider = ({ children }) => {
   const handleAddRules = async (repoName, branchName, rules) => {
     try {
       await octokit.request('PUT /repos/{owner}/{repo}/branches/{branch}/protection', {
-        owner: orgName,
+        owner: selectedOrg,
         repo: repoName,
         branch: branchName,
         required_pull_request_reviews: {
@@ -212,6 +212,7 @@ const OrgRequestProvider = ({ children }) => {
         organizations,
         handleOrgSelect,
         repositories,
+        selectedRepos,
         handleReposSelect,
         selectedReposBranch,
         handleBranchesSelect,

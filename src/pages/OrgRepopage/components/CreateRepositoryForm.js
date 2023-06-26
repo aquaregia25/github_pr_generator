@@ -1,9 +1,10 @@
 import React, { useContext, useState } from 'react';
 import { TextField, Button, Typography } from '@mui/material';
-import { RequestContext } from '../../../utils/ContextApi/RequestContext';
+// import { RequestContext } from '../../../utils/ContextApi/RequestContext';
+import { OrgRequestContext } from '../../../utils/ContextApi/OrgRequestContext';
 
 const RepositoryForm = () => {
-  const { handleCreateRepository } = useContext(RequestContext);
+  const { handleCreateRepository } = useContext(OrgRequestContext);
   const [repoName, setRepoName] = useState('');
 
   const handleRepoNameChange = (event) => {

@@ -1,16 +1,14 @@
 import React, { useContext, useState } from 'react';
 import { TextField, Button, MenuItem, Typography, Checkbox, FormControlLabel, Box } from '@mui/material';
-import { RequestContext } from '../../../utils/ContextApi/RequestContext';
+// import { RequestContext } from '../../../utils/ContextApi/RequestContext';
+import { OrgRequestContext } from '../../../utils/ContextApi/OrgRequestContext';
 
 const BranchForm = () => {
   const {
-    repositories,
     selectedRepos,
     selectedReposBranch,
-    handleReposSelect,
     handleAddBranch,
-    handleRepoSelect,
-  } = useContext(RequestContext);
+  } = useContext(OrgRequestContext);
   
   const [branchName, setBranchName] = useState('');
   const [baseBranch, setBaseBranch] = useState('');
@@ -32,6 +30,10 @@ const BranchForm = () => {
   //extract branches of same name for selected repos
 
   React.useEffect(() => {
+
+    console.log(selectedReposBranch);
+    console.log(selectedRepos);
+
     let map = new Map();
     selectedReposBranch.forEach((repo) => {
       if(map.has(repo.name)){
@@ -43,7 +45,7 @@ const BranchForm = () => {
     });
     let commonBranches = [];
     map.forEach((value,key) => {
-      if(value === selectedRepos.length){
+      if(value === selectedRepos?.length){
         commonBranches.push(key);
       }
     });
@@ -117,7 +119,7 @@ const BranchForm = () => {
         margin="normal"
       >
         {
-          commonBranches.length !== 0?  commonBranches?.map((option) => (
+          commonBranches?.length !== 0?  commonBranches?.map((option) => (
             <MenuItem key={option} value={option}>
               {option}
             </MenuItem>

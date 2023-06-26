@@ -1,17 +1,16 @@
 import React, { useContext, useState } from 'react';
 import { TextField, Button, MenuItem } from '@mui/material';
-import { RequestContext } from '../../../utils/ContextApi/RequestContext';
+// import { RequestContext } from '../../../utils/ContextApi/RequestContext';
+import { OrgRequestContext } from '../../../utils/ContextApi/OrgRequestContext';
 import MultipleSelectChipCity from '../../../containers/MultiSelectField/MultiSelectField';
 
 const PullRequestForm = () => {
   const {
-    repositories,
-    selectedRepos,
     selectedReposBranch,
     selectedBranches,
     handleRaisePullRequest,
     handleBranchesSelect,
-  } = useContext(RequestContext);
+  } = useContext(OrgRequestContext);
   const [toBranch, setToBranch] = useState('');
   const [comments, setComments] = useState('');
 

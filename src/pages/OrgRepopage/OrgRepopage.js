@@ -4,6 +4,7 @@ import RepositoryForm from './components/CreateRepositoryForm';
 import BranchForm from './components/BranchForm';
 import PullRequestForm from './components/PullRequestForm';
 import SelectRepository from './components/SelectRepositoryForm';
+import SelectOrganisation from './components/SelectOrganisation';
 import { useContext } from 'react';
 import { AuthContext } from '../../utils/ContextApi/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -70,7 +71,7 @@ const RepositoryPage = () => {
           <LogoutButton/>
         </Grid>
       </Grid>
-
+      <SelectOrganisation />
       <RepositoryForm />
       <SelectRepository />
       <PullRequestForm />
