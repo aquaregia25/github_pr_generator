@@ -1,58 +1,39 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { createOctokit } from '../octokit';
 import { useContext } from 'react';
 import { PopupContext } from './PopupContext';
 import { TrackerContext } from './TrackerContext';
 import { AuthContext } from './AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom/dist';
-import { Octokit } from "octokit";
 
-const RequestContext = createContext();
+const OrgRequestContext = createContext();
 
-const RequestProvider = ({ children }) => {
+const OrgRequestProvider = ({ children }) => {
   //PREVIOUS CONTEXTS
   const { openPopup } = useContext(PopupContext);
   const navigate = useNavigate();
   const location = useLocation();
   const {addActivityData}=useContext(TrackerContext);
-  const {isAuthenticated,octokit,workingInOrg,ownerDetails}=useContext(AuthContext);
+  const {isAuthenticated,octokit}=useContext(AuthContext);
 
-  const [ownerName, setOwnerName] = useState('');
+  const [organizations, setOrganizations] = useState([]);
+  const [selectedOrg, setSelectedOrg] = useState('');
   const [repositories, setRepositories] = useState([]);
   const [selectedRepos, setSelectedRepos] = useState([]);
   const [selectedReposBranch, setSelectedRepoBranch] = useState([]);
   const [selectedBranches, setSelectedBraches] = useState([]);
 
-  // ALL USEEFFECTS
-  // useEffect(() => {
-  //   octokit?.rest?.users?.getAuthenticated().then((response) => {
-  //     setIsAuthenticated(true);
-  //     navigate('/repository');
-  //     setOwnerDetails(response.data);
-  //     setOwnerName(response.data.login);  // Important
-  //   }).catch((error) => {
-  //     setIsAuthenticated(false);
-  //     navigate('/');
-  //     openPopup('Error In Token Login!!','error')
-  //     addActivityData({time:new Date(),type:"Error In Token Login" ,status:"error",message:error?.message});
-  //     setOwnerDetails({});
-  //   });
-
-  // }, [octokit]);
-
-
   useEffect(() => {
-  if(workingInOrg===false){
-      if (isAuthenticated){
-        setOwnerName(ownerDetails?.login);
-        fetchRepositories();
-    }
+    if (isAuthenticated)
+      fetchOrganizations();
     if(!isAuthenticated)
       handlResetStatesOnLogout();
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if(isAuthenticated && selectedOrg) {
+      fetchRepositories(selectedOrg);
     }
-
-
-  }, [isAuthenticated,workingInOrg]);
+  }, [selectedOrg]);
   
   useEffect(() => {
     if(isAuthenticated ===false)
@@ -66,34 +47,43 @@ const RequestProvider = ({ children }) => {
     ));
   }, [selectedRepos]);
 
-
-
   //ALL HANDLERS
+  const handleOrgSelect = (org) => {
+    setSelectedOrg(org);
+  }
+
   const handleReposSelect = (repos) => {
-    // setSelectedRepos([...selectedRepos,repo]);
-    //only repo with unique name should be added and repos is array of objects
     const newRepos = repos.filter((repo, index) => repos.indexOf(repo) === index);
     setSelectedRepos(newRepos);
-
   }
 
   const handleBranchesSelect = (branches) => {
     setSelectedBraches(branches);
   }
-  const fetchRepositories = async () => {
+
+  const fetchOrganizations = async () => {
     try {
-      const response = await octokit?.request('GET /user/repos');
+      const response = await octokit?.request('GET /user/orgs');
+      const organizations = response?.data ?? [];
+      setOrganizations(organizations);
+    } catch (error) {
+      openPopup('Error fetching organizations', 'error');
+      addActivityData({time:new Date(),type:"Error fetching organizations",status:"error",message:error?.message});
+    }
+  };
+
+  const fetchRepositories = async (org) => {
+    try {
+      const response = await octokit?.request('GET /orgs/{org}/repos', {
+        org: org
+      });
       const repositories = response.data?.map((item) => {
         return { ...item, searchField: `Name:${item.name} | Desc:${item.description}` };
       }) ?? [];
-      
       setRepositories(repositories);      
-      console.log("repos", repositories);
       addActivityData({time:new Date(),type:"Repositories fetched successfully!",status:"success",message:"repositories fetched"});
 
-
     } catch (error) {
-      // alert('Error fetching repositories');
       openPopup('Error fetching repositories', 'error');
       addActivityData({time:new Date(),type:"Error fetching repositories",status:"error",message:error?.message});
     }
@@ -102,7 +92,7 @@ const RequestProvider = ({ children }) => {
   const fetchBranches = async (repoName) => {
     try {
       const response = await octokit.request('GET /repos/{owner}/{repo}/branches', {
-        owner: ownerName,
+        owner: selectedOrg,
         repo: repoName,
       });
       const newBranches = response?.data?.map((branch) => ({
@@ -115,62 +105,84 @@ const RequestProvider = ({ children }) => {
         ...prevSelectedReposBranch,
         ...newBranches,
       ]);
-      console.log("selectrepobranch", selectedReposBranch);
       addActivityData({time:new Date(),type:"Branches fetched successfully!",status:"success",message:`branches fetched for ${repoName}`});      
-      // openPopup('Branches fetched successfully!', 'success');
+
     } catch (error) {
-      // alert('Error fetching branches');
       openPopup('Error fetching branches', 'error');
       addActivityData({time:new Date(),type:"Error fetching branches",status:"error",message:error?.message});
-
     }
   };
 
-  const handleCreateRepository = async (repoName) => {
+  const handlResetStatesOnLogout = () => {
+    setSelectedOrg('');
+    setRepositories([]);
+    setSelectedRepos([]);
+    setSelectedRepoBranch([]);
+    setSelectedBraches([]);
+  }
+  const handleAddBranch = async (orgName, repoName, branchName, baseBranch, addRules, rules) => {
     try {
-      await octokit.request('POST /user/repos', {
+      const baseBranchData = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
+        owner: orgName,
+        repo: repoName,
+        branch: baseBranch,
+      });
+  
+      await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
+        owner: orgName,
+        repo: repoName,
+        ref: `refs/heads/${branchName}`,
+        sha: baseBranchData.data.commit.sha,
+      });
+  
+      openPopup('Branch added successfully!', 'success');
+      addActivityData({time:new Date(),type:"Branch added successfully!",status:"success",message:`branch ${branchName} added to ${repoName}`});
+  
+      if(addRules){
+        handleAddRules(orgName, repoName, branchName, rules);
+      }
+  
+    } catch (error) {
+      openPopup("Error: " + error?.message, 'error');
+      addActivityData({time:new Date(),type:"Error adding branch",status:"error",message:error?.message});
+    }
+  };
+  const handleCreateRepository = async (orgName, repoName) => {
+    try {
+      await octokit.request('POST /orgs/{org}/repos', {
+        org: orgName,
         name: repoName,
       });
-      // alert('Repository created successfully!');
       openPopup('Repository created successfully!', 'success');
-      fetchRepositories();
+      fetchRepositories(orgName);
       addActivityData({time:new Date(),type:"Repository created successfully!",status:"success",message:`repository ${repoName} created`});
     } catch (error) {
-      // alert('Error creating repository');
       openPopup('Error creating repository '+error?.message, 'error');
       addActivityData({time:new Date(),type:"Error creating repository",status:"error",message:error?.message});
     }
   };
-
-  const handleAddBranch = async (repoName, branchName,baseBranch,addRules,rules) => {
+  
+  const handleRaisePullRequest = async (orgName, repoName, fromBranch, toBranch, comments) => {
     try {
-      await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
-        owner: ownerName,
+      await octokit.request('POST /repos/{owner}/{repo}/pulls', {
+        owner: orgName,
         repo: repoName,
-        ref: `refs/heads/${branchName}`,
-        sha: selectedReposBranch.find((branch) => branch.name === baseBranch)?.commit?.sha,
+        head: fromBranch,
+        base: toBranch,
+        title: `Pull Request: ${fromBranch} to ${toBranch}`,
+        body: comments,
       });
-      // alert('Branch added successfully!');
-      openPopup('Branch added successfully!', 'success');
-      addActivityData({time:new Date(),type:"Branch added successfully!",status:"success",message:`branch ${branchName} added to ${repoName}`});
-
-      if(addRules){
-        handleAddRules(repoName,branchName,rules);
-      }
-
+      openPopup('Pull Request raised successfully!', 'success');
+      addActivityData({time:new Date(),type:"Pull Request raised successfully!",status:"success",message:`pull request raised from ${fromBranch} to ${toBranch}`});
     } catch (error) {
-      // alert('Error adding branch');
       openPopup("Error: " + error?.message, 'error');
-      addActivityData({time:new Date(),type:"Error adding branch",status:"error",message:error?.message});
-
+      addActivityData({time:new Date(),type:"Error raising Pull Request",status:"error",message:error?.message});
     }
   };
-
-
   const handleAddRules = async (repoName, branchName, rules) => {
     try {
       await octokit.request('PUT /repos/{owner}/{repo}/branches/{branch}/protection', {
-        owner: ownerName,
+        owner: orgName,
         repo: repoName,
         branch: branchName,
         required_pull_request_reviews: {
@@ -194,50 +206,24 @@ const RequestProvider = ({ children }) => {
     }
   };
 
-
-  const handleRaisePullRequest = async (repoName, fromBranch, toBranch, comments) => {
-    try {
-      await octokit.request('POST /repos/{owner}/{repo}/pulls', {
-        owner: ownerName,
-        repo: repoName,
-        head: fromBranch,
-        base: toBranch,
-        title: `Pull Request: ${fromBranch} to ${toBranch}`,
-        body: comments,
-      });
-      // alert('Pull Request raised successfully!');
-      openPopup('Pull Request raised successfully!', 'success');
-      addActivityData({time:new Date(),type:"Pull Request raised successfully!",status:"success",message:`pull request raised from ${fromBranch} to ${toBranch}`});
-    } catch (error) {
-      // alert('Error raising Pull Request');
-      openPopup("Error: " + error?.message, 'error');
-      addActivityData({time:new Date(),type:"Error raising Pull Request",status:"error",message:error?.message});
-    }
-  };
-
-  const handlResetStatesOnLogout = () => {
-    setOwnerName('');
-    setRepositories([]);
-    setSelectedRepos([]);
-    setSelectedRepoBranch([]);
-    setSelectedBraches([]);
-  }
-
-  
-  //ALL CONTEXT VALUES WHICH ARE EXPORTED
-  const contextValues = {
-    repositories,
-    selectedRepos,
-    selectedReposBranch,
-    selectedBranches,
-
-    handleReposSelect,
-    handleBranchesSelect,
-    handleCreateRepository,
-    handleAddBranch,
-    handleRaisePullRequest,
-  };
-  return <RequestContext.Provider value={contextValues}>{children}</RequestContext.Provider>;
+  return (
+    <OrgRequestContext.Provider
+      value={{
+        organizations,
+        handleOrgSelect,
+        repositories,
+        handleReposSelect,
+        selectedReposBranch,
+        handleBranchesSelect,
+        selectedBranches,
+        handleCreateRepository,
+        handleRaisePullRequest,
+        handleAddBranch,
+      }}
+    >
+      {children}
+    </OrgRequestContext.Provider>
+  );
 };
 
-export { RequestContext, RequestProvider };
+export { OrgRequestContext, OrgRequestProvider };

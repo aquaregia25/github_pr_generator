@@ -63,7 +63,7 @@ const RepositoryPage = () => {
       <Grid container alignItems="center" sx={{justifyContent:"space-between"}}  spacing={2}>
         <Grid item>
           <Typography variant="h4" component="h1">
-            Hello {ownerDetails?.login}
+            Hello {ownerDetails?.login} | working in Organization
           </Typography>
         </Grid>
         <Grid item>
