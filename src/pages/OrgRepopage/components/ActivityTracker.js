@@ -76,6 +76,7 @@ const ActivityTracker = () => {
       <Table aria-label="Activity Tracker">
         <TableHead>
           <TableRow>
+ 
             <TableCell>S.No</TableCell>
             <TableCell>Type</TableCell>
             <TableCell>Status</TableCell>

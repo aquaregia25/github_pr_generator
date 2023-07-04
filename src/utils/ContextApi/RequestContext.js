@@ -24,23 +24,6 @@ const RequestProvider = ({ children }) => {
   const [selectedBranches, setSelectedBraches] = useState([]);
 
   // ALL USEEFFECTS
-  // useEffect(() => {
-  //   octokit?.rest?.users?.getAuthenticated().then((response) => {
-  //     setIsAuthenticated(true);
-  //     navigate('/repository');
-  //     setOwnerDetails(response.data);
-  //     setOwnerName(response.data.login);  // Important
-  //   }).catch((error) => {
-  //     setIsAuthenticated(false);
-  //     navigate('/');
-  //     openPopup('Error In Token Login!!','error')
-  //     addActivityData({time:new Date(),type:"Error In Token Login" ,status:"error",message:error?.message});
-  //     setOwnerDetails({});
-  //   });
-
-  // }, [octokit]);
-
-
   useEffect(() => {
   if(workingInOrg===false){
       if (isAuthenticated){
@@ -89,7 +72,7 @@ const RequestProvider = ({ children }) => {
       
       setRepositories(repositories);      
       console.log("repos", repositories);
-      addActivityData({time:new Date(),type:"Repositories fetched successfully!",status:"success",message:"repositories fetched"});
+      addActivityData({time:new Date(),type:"Repositories fetched successfully!",status:"success",message:"All repositories fetched"});
 
 
     } catch (error) {

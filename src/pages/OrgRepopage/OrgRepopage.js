@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Typography, Grid,Button } from '@mui/material';
+import {  Typography, Grid,Button } from '@mui/material';
 import RepositoryForm from './components/CreateRepositoryForm';
 import BranchForm from './components/BranchForm';
 import PullRequestForm from './components/PullRequestForm';
@@ -9,6 +9,7 @@ import { useContext } from 'react';
 import { AuthContext } from '../../utils/ContextApi/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import ActivityTracker from './components/ActivityTracker';
+import ImageNameUpdate from './components/ImageNameUpdate';
 
 
 
@@ -61,11 +62,15 @@ const RepositoryPage = () => {
         borderRadius: '4px',
       }}
     >
-      <Grid container alignItems="center" sx={{justifyContent:"space-between"}}  spacing={2}>
+      <Grid direction="row" container alignItems="center" sx={{justifyContent:"space-between"}}  spacing={2}>
         <Grid item>
           <Typography variant="h4" component="h1">
-            Hello {ownerDetails?.login} | working in Organization
+            Hello {ownerDetails?.login}! 
           </Typography>
+          <Typography variant="h6" component="h1">
+            Welcome to Organisation Handler Page
+          </Typography>
+          
         </Grid>
         <Grid item>
           <LogoutButton/>
@@ -76,6 +81,7 @@ const RepositoryPage = () => {
       <SelectRepository />
       <PullRequestForm />
       <BranchForm />
+      <ImageNameUpdate />
       <ActivityTracker />
     </div>
   );

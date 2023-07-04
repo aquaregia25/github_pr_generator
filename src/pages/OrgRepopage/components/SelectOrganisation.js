@@ -1,5 +1,4 @@
 import React, { useContext, useState, useEffect } from 'react';
-import MultipleSelectChipCity from '../../../containers/MultiSelectField/MultiSelectField';
 import { Typography,MenuItem,TextField } from '@mui/material';
 import { OrgRequestContext } from '../../../utils/ContextApi/OrgRequestContext';
 
@@ -33,7 +32,7 @@ const SelectOrganisation = () => {
       }}
     >
       <Typography variant="h4" component="h1" style={{ marginBottom: '24px' }}>
-        Select Organisation
+        Select Organisation First
       </Typography>
       <TextField
         select

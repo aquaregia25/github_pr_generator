@@ -1,13 +1,11 @@
 import React from 'react';
 import { TextField, Button, Typography, Box } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
-import { RequestContext } from '../../utils/ContextApi/RequestContext';
 import { AuthContext } from '../../utils/ContextApi/AuthContext';
 import { Link } from 'react-router-dom';
 
 const Mainpage = () => {
-  const { isAuthenticated, handleLogin } = useContext(AuthContext);
+  const { isAuthenticated,handleWorkingInOrg, handleLogin } = useContext(AuthContext);
   const [ownerName, setOwnerName] = React.useState('');
   const [githubToken, setGithubToken] = React.useState('');
 
@@ -34,15 +32,6 @@ const Mainpage = () => {
             Enter GitHub Your Token
           </Typography>
           <Box mt={3} width={400}> {/* Increase the width */}
-            {/* <TextField
-          label="Enter Owner Name (GitHub Username)"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          value={ownerName}
-          onChange={(e) => setOwnerName(e.target.value)}
-          color="secondary" // Set the color
-        /> */}
             <TextField
               label="Enter GitHub Token"
               variant="outlined"
@@ -63,23 +52,18 @@ const Mainpage = () => {
           </Typography>
           <Box mt={3} width={400}> {/* Increase the width */}
             <Link to="/repository">
-              <Button variant="contained" color="primary" fullWidth>
+              <Button variant="contained" color="primary" fullWidth margin="normal" sx={{margin:'5%'}}>
                 Personal
               </Button>
             </Link>
             <Link to="/orgrepo">
-              <Button variant="contained" color="primary" fullWidth>
+              <Button variant="contained" color="primary" fullWidth sx={{margin:'5%'}}>
                 Organization
               </Button>
             </Link>
           </Box>
         </>
       )
-
-
-
-
-
       }
 
 

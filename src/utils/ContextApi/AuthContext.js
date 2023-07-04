@@ -25,7 +25,7 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     if(location.pathname==='/repository')
       setWorkingInOrg(false);
-    if(location.pathname==='/orgrepository')
+    if(location.pathname==='/orgrepo')
       setWorkingInOrg(true);
       console.log(workingInOrg);
   }, [location.pathname,workingInOrg]);
