@@ -1,33 +1,31 @@
+import { BrowserRouter as Router } from 'react-router-dom';
 import './App.css';
-import Mainpage from './pages/Mainpage/Mainpage'
-import RepositoryPage from './pages/Repopage/Repopage';
-import OrgRepositoryPage from './pages/OrgRepopage/OrgRepopage';
-import { RequestProvider } from './utils/ContextApi/RequestContext';
+import ComponentRoutes from './Routes';
+import { AuthProvider } from './utils/ContextApi/AuthContext';
 import { OrgRequestProvider } from './utils/ContextApi/OrgRequestContext';
 import { PopupProvider } from './utils/ContextApi/PopupContext';
+import { RequestProvider } from './utils/ContextApi/RequestContext';
 import { TrackerProvider } from './utils/ContextApi/TrackerContext';
-import { AuthProvider } from './utils/ContextApi/AuthContext';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { LoaderProvider } from './utils/ContextApi/LoaderContext.js';
+
 
 function App() {
   return (
     <>
       <Router>
+        <LoaderProvider>
         <PopupProvider>
           <TrackerProvider>
             <AuthProvider>
               <OrgRequestProvider>
               <RequestProvider>
-                <Routes>
-                  <Route exact path="/" element={<Mainpage />} />
-                  <Route path="/repository" element={<RepositoryPage />} />
-                  <Route path="/orgrepo" element={<OrgRepositoryPage />} />
-                </Routes>
+                <ComponentRoutes />
               </RequestProvider>
               </OrgRequestProvider>
             </AuthProvider>
           </TrackerProvider>
         </PopupProvider>
+        </LoaderProvider>
       </Router>
 
     </>

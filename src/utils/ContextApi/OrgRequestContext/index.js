@@ -1,9 +1,9 @@
-import React, { createContext, useState, useEffect } from 'react';
-import { useContext } from 'react';
-import { PopupContext } from './PopupContext';
-import { TrackerContext } from './TrackerContext';
-import { AuthContext } from './AuthContext';
-import { useLocation, useNavigate } from 'react-router-dom/dist';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { AuthContext } from '../AuthContext';
+import { PopupContext } from '../PopupContext';
+import { TrackerContext } from '../TrackerContext';
+import { LoaderContext } from '../LoaderContext.js';
+import { isRepoPresentInBranch,GetReposBranches, GetNewRepos,AddSearchFieldToRepoResponseData,AddSearchFieldToBranchResponseData,GetReplaceImageName } from './helper';
 
 const OrgRequestContext = createContext();
 
@@ -11,7 +11,8 @@ const OrgRequestProvider = ({ children }) => {
   //PREVIOUS CONTEXTS
   const { openPopup } = useContext(PopupContext);
   const { addActivityData } = useContext(TrackerContext);
-  const { isAuthenticated, workingInOrg, octokit } = useContext(AuthContext);
+  const { workingInOrg, octokit } = useContext(AuthContext);
+  const { showLoader, hideLoader } = useContext(LoaderContext);
 
   const [organizations, setOrganizations] = useState([]);
   const [selectedOrg, setSelectedOrg] = useState('');
@@ -21,28 +22,22 @@ const OrgRequestProvider = ({ children }) => {
   const [selectedBranches, setSelectedBraches] = useState([]);
 
   useEffect(() => {
-    if (isAuthenticated && workingInOrg === true)
+    if (workingInOrg === true)
       fetchOrganizations();
-    if (!isAuthenticated)
-      handlResetStatesOnLogout();
-  }, [isAuthenticated, workingInOrg]);
+  }, [workingInOrg,]);
 
   useEffect(() => {
-    if (isAuthenticated && selectedOrg !== '') {
+    if (selectedOrg !== '') {
       fetchRepositories();
     }
   }, [selectedOrg]);
 
   useEffect(() => {
-    if (isAuthenticated === false)
-      return;
     selectedRepos.map((repo) => {
-      if (!selectedReposBranch.find((branch) => branch.repoName === repo.name))
+      if (!isRepoPresentInBranch(selectedReposBranch, repo.name))
         fetchBranches(repo.name);
     })
-    setSelectedRepoBranch(selectedReposBranch.filter(branch =>
-      selectedRepos.some(repo => repo.name === branch.repoName)
-    ));
+    setSelectedRepoBranch(GetReposBranches(selectedReposBranch,selectedRepos));
   }, [selectedRepos]);
 
   //ALL HANDLERS
@@ -51,8 +46,7 @@ const OrgRequestProvider = ({ children }) => {
   }
 
   const handleReposSelect = (repos) => {
-    const newRepos = repos.filter((repo, index) => repos.indexOf(repo) === index);
-    setSelectedRepos(newRepos);
+    setSelectedRepos(GetNewRepos(repos));
   }
 
   const handleBranchesSelect = (branches) => {
@@ -60,13 +54,17 @@ const OrgRequestProvider = ({ children }) => {
   }
 
   const fetchOrganizations = async () => {
+    showLoader();
     try {
       const response = await octokit?.request('GET /user/orgs');
       const organizations = response?.data ?? [];
       setOrganizations(organizations);
     } catch (error) {
       openPopup('Error fetching organizations', 'error');
-      addActivityData({ time: new Date(), type: "Error fetching organizations", status: "error", message: error?.message });
+      addActivityData("Error fetching organizations", "error", error?.message||error );
+    }
+    finally {
+      hideLoader();
     }
   };
 
@@ -75,39 +73,33 @@ const OrgRequestProvider = ({ children }) => {
       const response = await octokit?.request('GET /orgs/{org}/repos', {
         org: selectedOrg
       });
-      const repositories = response.data?.map((item) => {
-        return { ...item, searchField: `Name:${item.name} | Desc:${item.description}` };
-      }) ?? [];
+      const repositories = AddSearchFieldToRepoResponseData(response?.data)
       setRepositories(repositories);
-      addActivityData({ time: new Date(), type: "Repositories fetched successfully!", status: "success", message: "repositories fetched" });
+      addActivityData("Repositories fetched successfully!",  "success",  "repositories fetched" );
 
     } catch (error) {
       openPopup('Error fetching repositories', 'error');
-      addActivityData({ time: new Date(), type: "Error fetching repositories", status: "error", message: error?.message });
+      addActivityData( "Error fetching repositories",  "error",  error?.message );
     }
   };
 
   const fetchBranches = async (repoName) => {
     try {
-      const response = await octokit.request('GET /repos/{owner}/{repo}/branches', {
+      const response = await octokit?.request('GET /repos/{owner}/{repo}/branches', {
         owner: selectedOrg,
         repo: repoName,
       });
-      const newBranches = response?.data?.map((branch) => ({
-        ...branch,
-        repoName: repoName,
-        searchField: `Repo:${repoName} | Branch:${branch.name}`,
-      }));
+      const newBranches = AddSearchFieldToBranchResponseData(response?.data, repoName)
 
       setSelectedRepoBranch((prevSelectedReposBranch) => [
         ...prevSelectedReposBranch,
         ...newBranches,
       ]);
-      addActivityData({ time: new Date(), type: "Branches fetched successfully!", status: "success", message: `branches fetched for ${repoName}` });
+      addActivityData( "Branches fetched successfully!",  "success",  `branches fetched for ${repoName}` );
 
     } catch (error) {
       openPopup('Error fetching branches', 'error');
-      addActivityData({ time: new Date(), type: "Error fetching branches", status: "error", message: error?.message });
+      addActivityData( "Error fetching branches",  "error",  error?.message );
     }
   };
 
@@ -119,6 +111,7 @@ const OrgRequestProvider = ({ children }) => {
     setSelectedBraches([]);
   }
   const handleAddBranch = async (repoName, branchName, baseBranch, addRules, rules) => {
+    showLoader();
     try {
       const baseBranchData = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
         owner: selectedOrg,
@@ -134,7 +127,7 @@ const OrgRequestProvider = ({ children }) => {
       });
 
       openPopup('Branch added successfully!', 'success');
-      addActivityData({ time: new Date(), type: "Branch added successfully!", status: "success", message: `branch ${branchName} added to ${repoName}` });
+      addActivityData( "Branch added successfully!",  "success",  `branch ${branchName} added to ${repoName}` );
 
       if (addRules) {
         handleAddRules(repoName, branchName, rules);
@@ -142,10 +135,15 @@ const OrgRequestProvider = ({ children }) => {
 
     } catch (error) {
       openPopup("Error: " + error?.message, 'error');
-      addActivityData({ time: new Date(), type: "Error adding branch", status: "error", message: error?.message });
+      addActivityData( "Error adding branch",  "error",  error?.message );
     }
+    finally {
+      hideLoader();
+    }
+
   };
   const handleCreateRepository = async (repoName) => {
+    showLoader();
     try {
       await octokit.request('POST /orgs/{org}/repos', {
         org: selectedOrg,
@@ -153,14 +151,18 @@ const OrgRequestProvider = ({ children }) => {
       });
       openPopup('Repository created successfully!', 'success');
       fetchRepositories();
-      addActivityData({ time: new Date(), type: "Repository created successfully!", status: "success", message: `repository ${repoName} created` });
+      addActivityData( "Repository created successfully!",  "success",  `repository ${repoName} created` );
     } catch (error) {
       openPopup('Error creating repository ' + error?.message, 'error');
-      addActivityData({ time: new Date(), type: "Error creating repository", status: "error", message: error?.message });
+      addActivityData( "Error creating repository",  "error",  error?.message );
+    }
+    finally {
+      hideLoader();
     }
   };
 
   const handleRaisePullRequest = async (repoName, fromBranch, toBranch, comments) => {
+    showLoader();
     try {
       await octokit.request('POST /repos/{owner}/{repo}/pulls', {
         owner: selectedOrg,
@@ -171,10 +173,13 @@ const OrgRequestProvider = ({ children }) => {
         body: comments,
       });
       openPopup('Pull Request raised successfully!', 'success');
-      addActivityData({ time: new Date(), type: "Pull Request raised successfully!", status: "success", message: `pull request raised from ${fromBranch} to ${toBranch}` });
+      addActivityData( "Pull Request raised successfully!",  "success",  `pull request raised from ${fromBranch} to ${toBranch}` );
     } catch (error) {
       openPopup("Error: " + error?.message, 'error');
-      addActivityData({ time: new Date(), type: "Error raising Pull Request", status: "error", message: error?.message });
+      addActivityData( "Error raising Pull Request",  "error",  error?.message );
+    }
+    finally {
+      hideLoader();
     }
   };
   const handleAddRules = async (repoName, branchName, rules) => {
@@ -197,10 +202,10 @@ const OrgRequestProvider = ({ children }) => {
         required_linear_history: rules.linearHistory || false,
       });
       openPopup('Rules added successfully!', 'success');
-      addActivityData({ time: new Date(), type: "Rules added successfully!", status: "success", message: `rules added to ${branchName} of ${repoName}` });
+      addActivityData( "Rules added successfully!",  "success",  `rules added to ${branchName} of ${repoName}` );
     } catch (error) {
       openPopup("Error: " + error?.message, 'error');
-      addActivityData({ time: new Date(), type: "Error adding rules", status: "error", message: error?.message });
+      addActivityData( "Error adding rules",  "error",  error?.message );
     }
   };
 
@@ -213,81 +218,69 @@ const OrgRequestProvider = ({ children }) => {
         ref: ref
       });
       const content = atob(response.data.content);
-      console.log(content);
-      return content;
+
+      addActivityData( "File contents fetched successfully!",  "success",  `file contents fetched from ${path} of ${repo}`);
+      console.log("sha ",response.data.sha);
+      return {content,sha:response.data.sha}
 
     } catch (error) {
-      openPopup("Error: " + error?.message, 'error');
-      console.error('Error reading file:', error);
+      openPopup("Error In Fetching File SHA " + error?.message, 'error');
+      addActivityData( "Error In Fetching File SHA",  "error",  error?.message );
       return null;
     }
   };
-  async function getFileSha(owner, repo, path,) {  
-    try {
-      const response = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-        owner: owner,
-        repo: repo,
-        path: path,
-      });
   
-      const fileSha = response.data.sha;
-      return fileSha;
-    } catch (error) {
-      console.error('Error retrieving file SHA:', error);
-      throw error;
-    }
-  }
-  
-  const updateFileContents = async (owner, repo, path, branch, content) => {
+  const updateFileContents = async (owner, repo, path,branch, fileSha, content) => {
     try {
-
-      let fileSha = await getFileSha(owner, repo, path);
 
       const response = await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
         owner: owner,
         repo: repo,
         path: path,
-        message: 'Update file',
+        message:`Update Image Name in ${path} file`,
         content: btoa(content),
+        branch:branch,
         sha: fileSha,
       });
-      console.log('File updated successfully');
+
+      addActivityData( "File updated successfully!",  "success",  `file updated in ${path} of ${repo}`);
+
     } catch (error) {
       console.error('Error updating file:', error);
+      openPopup("Error updating file " + error?.message, 'error')
+      addActivityData( "Error updating file",  "error",  error?.message );
       throw error;
     }
   };
   
 
   const handleUpdateImageNameInRepo = async (repoName, branchName, imageName, imagePath) => {
+    showLoader();
     try {
       const owner = selectedOrg;
       const repo = repoName;
       const path = imagePath;
       const branch = branchName;
-      const content= await getFileContents(owner, repo, path, branch);
-      if(content === null){
-        return;
-      }
-      console.log(typeof(content));
-      var newContent = content.replace(/image: .*?\n/g, `image: ${imageName}\n`);
-      console.log(String(newContent));
-      try{
-        await updateFileContents(owner, repo, path, branch, newContent);
-        openPopup('Image name updated successfully!', 'success');
-      }
-      catch(error){
+      const {content,sha}= await getFileContents(owner, repo, path, branch);
 
-        console.log(error);
-        openPopup("Error: " + error?.message, 'error');
-      }
+      console.log("recieved sha ",sha)
 
+      var newContent = GetReplaceImageName(content,imageName);
 
+      await updateFileContents(owner, repo, path,branchName, sha, newContent);
+
+      openPopup('Image name updated successfully!', 'success');
+
+      addActivityData( "Image name updated successfully!",  "success",  `image name updated to ${imageName} in ${path} of ${repoName}` );
 
     }
     catch (error) {
       openPopup("Error: " + error?.message, 'error');
-      addActivityData({ time: new Date(), type: "Error updating image name", status: "error", message: error?.message });
+      addActivityData( "Error updating image name",  "error",  error?.message );
+      addActivityData( "Error updating image name",  "error",  error?.message );
+    }
+    finally {
+      hideLoader();
     }
   };
 
@@ -316,3 +309,4 @@ const OrgRequestProvider = ({ children }) => {
 };
 
 export { OrgRequestContext, OrgRequestProvider };
+

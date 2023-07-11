@@ -1,18 +1,18 @@
-import React, { createContext, useState, useEffect } from 'react';
-import { createOctokit } from '../octokit';
-import { useContext } from 'react';
-import { PopupContext } from './PopupContext';
-import { TrackerContext } from './TrackerContext';
-import { useLocation, useNavigate } from 'react-router-dom/dist';
 import { Octokit } from "octokit";
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom/dist';
+import { PopupContext } from '../PopupContext';
+import { TrackerContext } from '../TrackerContext';
+import { LoaderContext } from '../LoaderContext.js';
 
 const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
-  //PREVIOUS CONTEXTS
-  const { openPopup } = useContext(PopupContext);
   const navigate = useNavigate();
   const location = useLocation();
+  //PREVIOUS CONTEXTS
+  const { openPopup } = useContext(PopupContext);
+  const { showLoader, hideLoader } = useContext(LoaderContext);
   const {addActivityData}=useContext(TrackerContext);
 
   const [octokit, setOctokit] = useState(null);
@@ -21,13 +21,12 @@ const AuthProvider = ({ children }) => {
   const [workingInOrg, setWorkingInOrg] = useState(null);
 
 
-
+  
   useEffect(() => {
     if(location.pathname==='/repository')
       setWorkingInOrg(false);
     if(location.pathname==='/orgrepo')
       setWorkingInOrg(true);
-      console.log(workingInOrg);
   }, [location.pathname,workingInOrg]);
 
 
@@ -36,18 +35,19 @@ const AuthProvider = ({ children }) => {
     navigate('/');
   };
   const handleLogin = async (ownerName, githubToken) => {
+    showLoader();
     try {
       const octokit = new Octokit({ auth: githubToken });
       const data=await octokit.rest.users.getAuthenticated();
-      console.log(data);
       setOwnerDetails(data?.data);
       setOctokit(octokit);
       setIsAuthenticated(true);
     } catch (error) {
       openPopup('Error In Token Login!!' +error, 'error');
-      console.log(error);
-      addActivityData({ time: new Date(), type: "Error In Token Login", status: "error", message: error?.message });
+      addActivityData("Error In Token Login", "error", error?.message || error);
       setOwnerDetails({});
+    } finally {
+      hideLoader();
     }
   };
   

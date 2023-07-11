@@ -1,9 +1,9 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { createOctokit } from '../octokit';
+import { createOctokit } from '../../octokit';
 import { useContext } from 'react';
-import { PopupContext } from './PopupContext';
-import { TrackerContext } from './TrackerContext';
-import { AuthContext } from './AuthContext';
+import { PopupContext } from '../PopupContext';
+import { TrackerContext } from '../TrackerContext';
+import { AuthContext } from '../AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom/dist';
 import { Octokit } from "octokit";
 
@@ -26,20 +26,15 @@ const RequestProvider = ({ children }) => {
   // ALL USEEFFECTS
   useEffect(() => {
   if(workingInOrg===false){
-      if (isAuthenticated){
-        setOwnerName(ownerDetails?.login);
-        fetchRepositories();
-    }
-    if(!isAuthenticated)
-      handlResetStatesOnLogout();
-    }
+      
+    setOwnerName(ownerDetails?.login);
+    fetchRepositories();
+  }
 
-
-  }, [isAuthenticated,workingInOrg]);
+  }, [ownerDetails,workingInOrg]);
   
   useEffect(() => {
-    if(isAuthenticated ===false)
-      return;
+
     selectedRepos.map((repo) => {
       if (!selectedReposBranch.find((branch) => branch.repoName === repo.name))
         fetchBranches(repo.name);
@@ -53,8 +48,6 @@ const RequestProvider = ({ children }) => {
 
   //ALL HANDLERS
   const handleReposSelect = (repos) => {
-    // setSelectedRepos([...selectedRepos,repo]);
-    //only repo with unique name should be added and repos is array of objects
     const newRepos = repos.filter((repo, index) => repos.indexOf(repo) === index);
     setSelectedRepos(newRepos);
 
@@ -72,13 +65,13 @@ const RequestProvider = ({ children }) => {
       
       setRepositories(repositories);      
       console.log("repos", repositories);
-      addActivityData({time:new Date(),type:"Repositories fetched successfully!",status:"success",message:"All repositories fetched"});
+      addActivityData("Repositories fetched successfully!","success","All repositories fetched");
 
 
     } catch (error) {
       // alert('Error fetching repositories');
       openPopup('Error fetching repositories', 'error');
-      addActivityData({time:new Date(),type:"Error fetching repositories",status:"error",message:error?.message});
+      addActivityData("Error fetching repositories","error",error?.message);
     }
   };
 
@@ -99,12 +92,12 @@ const RequestProvider = ({ children }) => {
         ...newBranches,
       ]);
       console.log("selectrepobranch", selectedReposBranch);
-      addActivityData({time:new Date(),type:"Branches fetched successfully!",status:"success",message:`branches fetched for ${repoName}`});      
+      addActivityData("Branches fetched successfully!","success",`branches fetched for ${repoName}`);      
       // openPopup('Branches fetched successfully!', 'success');
     } catch (error) {
       // alert('Error fetching branches');
       openPopup('Error fetching branches', 'error');
-      addActivityData({time:new Date(),type:"Error fetching branches",status:"error",message:error?.message});
+      addActivityData("Error fetching branches","error",error?.message);
 
     }
   };
@@ -117,11 +110,11 @@ const RequestProvider = ({ children }) => {
       // alert('Repository created successfully!');
       openPopup('Repository created successfully!', 'success');
       fetchRepositories();
-      addActivityData({time:new Date(),type:"Repository created successfully!",status:"success",message:`repository ${repoName} created`});
+      addActivityData("Repository created successfully!","success",`repository ${repoName} created`);
     } catch (error) {
       // alert('Error creating repository');
       openPopup('Error creating repository '+error?.message, 'error');
-      addActivityData({time:new Date(),type:"Error creating repository",status:"error",message:error?.message});
+      addActivityData("Error creating repository","error",error?.message);
     }
   };
 
@@ -135,7 +128,7 @@ const RequestProvider = ({ children }) => {
       });
       // alert('Branch added successfully!');
       openPopup('Branch added successfully!', 'success');
-      addActivityData({time:new Date(),type:"Branch added successfully!",status:"success",message:`branch ${branchName} added to ${repoName}`});
+      addActivityData("Branch added successfully!","success",`branch ${branchName} added to ${repoName}`);
 
       if(addRules){
         handleAddRules(repoName,branchName,rules);
@@ -144,7 +137,7 @@ const RequestProvider = ({ children }) => {
     } catch (error) {
       // alert('Error adding branch');
       openPopup("Error: " + error?.message, 'error');
-      addActivityData({time:new Date(),type:"Error adding branch",status:"error",message:error?.message});
+      addActivityData("Error adding branch","error",error?.message);
 
     }
   };
@@ -170,10 +163,10 @@ const RequestProvider = ({ children }) => {
         required_linear_history: rules.linearHistory || false,
       });
       openPopup('Rules added successfully!', 'success');
-      addActivityData({time:new Date(),type:"Rules added successfully!",status:"success",message:`rules added to ${branchName} of ${repoName}`});
+      addActivityData("Rules added successfully!","success",`rules added to ${branchName} of ${repoName}`);
     } catch (error) {
       openPopup("Error: " + error?.message, 'error');
-      addActivityData({time:new Date(),type:"Error adding rules",status:"error",message:error?.message});
+      addActivityData("Error adding rules","error",error?.message);
     }
   };
 
@@ -190,11 +183,11 @@ const RequestProvider = ({ children }) => {
       });
       // alert('Pull Request raised successfully!');
       openPopup('Pull Request raised successfully!', 'success');
-      addActivityData({time:new Date(),type:"Pull Request raised successfully!",status:"success",message:`pull request raised from ${fromBranch} to ${toBranch}`});
+      addActivityData("Pull Request raised successfully!","success",`pull request raised from ${fromBranch} to ${toBranch}`);
     } catch (error) {
       // alert('Error raising Pull Request');
       openPopup("Error: " + error?.message, 'error');
-      addActivityData({time:new Date(),type:"Error raising Pull Request",status:"error",message:error?.message});
+      addActivityData("Error raising Pull Request","error",error?.message);
     }
   };
 

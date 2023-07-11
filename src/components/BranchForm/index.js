@@ -1,15 +1,11 @@
 import React, { useContext, useState } from 'react';
 import { TextField, Button, MenuItem, Typography, Checkbox, FormControlLabel, Box } from '@mui/material';
-import { RequestContext } from '../../../utils/ContextApi/RequestContext';
 
-const BranchForm = () => {
+const BranchForm = ({RequestContext}) => {
   const {
-    repositories,
     selectedRepos,
     selectedReposBranch,
-    handleReposSelect,
     handleAddBranch,
-    handleRepoSelect,
   } = useContext(RequestContext);
   
   const [branchName, setBranchName] = useState('');
@@ -32,6 +28,10 @@ const BranchForm = () => {
   //extract branches of same name for selected repos
 
   React.useEffect(() => {
+
+    console.log(selectedReposBranch);
+    console.log(selectedRepos);
+
     let map = new Map();
     selectedReposBranch.forEach((repo) => {
       if(map.has(repo.name)){
@@ -43,7 +43,7 @@ const BranchForm = () => {
     });
     let commonBranches = [];
     map.forEach((value,key) => {
-      if(value === selectedRepos.length){
+      if(value === selectedRepos?.length){
         commonBranches.push(key);
       }
     });
@@ -86,18 +86,20 @@ const BranchForm = () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         justifyContent: 'center',
-        m: 'auto',
-        p: 4,
-        width: '80%',
-        bgcolor: 'background.paper',
-        borderRadius: '4px',
-        color: 'text.primary',
+        margin: '5% auto',
+        backgroundColor: 'white',
+        padding: '5%', 
+        width:'90%',
+        color: 'black',
+        boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.5)',
+        borderRadius: '10px',
       }}
     >
-      <Typography variant="h4" component="h1" sx={{ mb: 3, color: 'text.secondary' }}>
-        Add Branch to All Repositories
+      <Typography variant="h4" component="h1" style={{ marginBottom: '24px' }}>
+
+        Add Branch to All Selected Repositories
       </Typography>
 
       <TextField
@@ -117,7 +119,7 @@ const BranchForm = () => {
         margin="normal"
       >
         {
-          commonBranches.length !== 0?  commonBranches?.map((option) => (
+          commonBranches?.length !== 0?  commonBranches?.map((option) => (
             <MenuItem key={option} value={option}>
               {option}
             </MenuItem>
@@ -239,7 +241,7 @@ const BranchForm = () => {
         onClick={handleAddBranchHandler}
         sx={{
           mt: 3,
-          bgcolor: 'primary.main',
+          bgcolor: '#0C5B8F',
           color: 'primary.contrastText',
           '&:hover': {
             bgcolor: 'primary.dark',

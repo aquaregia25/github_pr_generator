@@ -51,21 +51,22 @@ const ImageNameUpdate = () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         justifyContent: 'center',
-        m: 'auto',
-        p: 4,
-        width: '80%',
-        bgcolor: 'background.paper',
-        borderRadius: '4px',
-        color: 'text.primary',
+        margin: '5% auto',
+        backgroundColor: 'white',
+        padding: '5%', 
+        width:'90%',
+        color: 'Black',
+        boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.5)',
+        borderRadius: '10px',
       }}
     >
-      <Typography variant="h4" component="h1" sx={{ mb: 3, color: 'text.secondary' }}>
+      <Typography variant="h4" component="h1" style={{ marginBottom: '24px' }}>
         Add Update Image Name in Repo
       </Typography>
-      <Typography variant="h6" component="h1" sx={{ mb: 3, color: 'text.secondary' }}>
-        select only one Repo Above
+      <Typography variant="h6" component="h1" sx={{ mb: 3, color: 'red' }}>
+        Select only one Repo Above
       </Typography>
 
       <TextField
@@ -104,10 +105,10 @@ const ImageNameUpdate = () => {
         onClick={handleImageNameUpdate}
         sx={{
           mt: 3,
-          bgcolor: 'primary.main',
+          bgcolor: '#0C5B8F',
           color: 'primary.contrastText',
           '&:hover': {
-            bgcolor: 'primary.dark',
+            bgcolor: '#0C5B8F',
           },
         }}
       >

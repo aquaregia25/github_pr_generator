@@ -1,15 +1,14 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Typography,MenuItem,TextField } from '@mui/material';
-import { OrgRequestContext } from '../../../utils/ContextApi/OrgRequestContext';
+import { Typography, MenuItem, TextField } from '@mui/material';
 
-const SelectOrganisation = () => {
-  const { organizations, handleOrgSelect } = useContext(OrgRequestContext);
+const SelectOrganisation = ({ RequestContext }) => {
+  const { organizations, handleOrgSelect } = useContext(RequestContext);
   const [orgsName, setOrgsName] = useState([]);
   const [selectedOrg, setSelectedOrg] = useState('');
 
-    useEffect(() => {
-        setOrgsName(organizations.map((org) => org.login));
-    }, [organizations]);
+  useEffect(() => {
+    setOrgsName(organizations.map((org) => org.login));
+  }, [organizations]);
 
   const handleReposSelectHandler = (event) => {
     handleOrgSelect(event);
@@ -24,11 +23,13 @@ const SelectOrganisation = () => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        margin: 'auto',
-        padding: '16px',
-        width: '80%',
-        backgroundColor: '#f8f8f8',
-        borderRadius: '4px',
+        margin: '5% auto',
+        backgroundColor: 'white',
+        padding: '5%', 
+        width:'90%',
+        color: 'Black',
+        boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.5)',
+        borderRadius: '10px',
       }}
     >
       <Typography variant="h4" component="h1" style={{ marginBottom: '24px' }}>
@@ -45,14 +46,14 @@ const SelectOrganisation = () => {
 
 
         {orgsName.map((org) => (
-            <MenuItem key={org} value={org}>
-                {org}
-            </MenuItem>
+          <MenuItem key={org} value={org}>
+            {org}
+          </MenuItem>
         ))}
 
       </TextField>
 
-     
+
     </div>
   );
 };

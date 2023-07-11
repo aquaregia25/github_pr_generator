@@ -1,12 +1,10 @@
 import React, { useContext, useState } from 'react';
-import { TextField, Button, MenuItem } from '@mui/material';
-import { RequestContext } from '../../../utils/ContextApi/RequestContext';
-import MultipleSelectChipCity from '../../../containers/MultiSelectField/MultiSelectField';
+import { TextField, Button,Typography } from '@mui/material';
+// import { RequestContext } from '../../../utils/ContextApi/RequestContext';
+import MultipleSelectChipCity from '../MultiSelectField/MultiSelectField';
 
-const PullRequestForm = () => {
+const PullRequestForm = ({RequestContext}) => {
   const {
-    repositories,
-    selectedRepos,
     selectedReposBranch,
     selectedBranches,
     handleRaisePullRequest,
@@ -41,14 +39,17 @@ const PullRequestForm = () => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        margin: 'auto',
-        padding: '16px',
-        width: '80%',
-        backgroundColor: '#f8f8f8',
-        borderRadius: '4px',
+        margin: '5% auto',
+        backgroundColor: 'white',
+        padding: '5%', 
+        width:'90%',
+        color: 'Black',
+        boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.5)',
+        borderRadius: '10px',
       }}
     >
-      <h1>Raise Pull Request</h1>
+           <Typography variant="h4" component="h1" style={{ marginBottom: '24px' }}>
+Raise Pull Request</Typography >
 
       <MultipleSelectChipCity
         name="Select From Branch"
@@ -71,7 +72,7 @@ const PullRequestForm = () => {
         fullWidth
         margin="normal"
       />
-      <Button variant="contained" onClick={handleRaisePullRequestHandler}>
+      <Button sx={{backgroundColor:'#0C5B8F',color:'white'}} onClick={handleRaisePullRequestHandler}>
         Raise Pull Request
       </Button>
     </div>
