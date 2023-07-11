@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useTheme } from '@mui/material/styles';
-import Box from '@mui/material/Box';
+import Autocomplete from '@mui/material/Autocomplete';
 import Chip from '@mui/material/Chip';
 import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
-import Autocomplete from '@mui/material/Autocomplete';
+import React, { useEffect, useState } from 'react';
 
 export default function MultipleSelectChipCity({ setAllSelected, name, allList }) {
   const [personName, setPersonName] = useState([]);

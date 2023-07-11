@@ -1,8 +1,9 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { createOctokit } from '../octokit';
+import { createOctokit } from '../../octokit';
 import { useContext } from 'react';
-import { PopupContext } from './PopupContext';
-import { TrackerContext } from './TrackerContext';
+import { PopupContext } from '../PopupContext';
+import { TrackerContext } from '../TrackerContext';
+import { AuthContext } from '../AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom/dist';
 import { Octokit } from "octokit";
 
@@ -14,52 +15,26 @@ const RequestProvider = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const {addActivityData}=useContext(TrackerContext);
+  const {isAuthenticated,octokit,workingInOrg,ownerDetails}=useContext(AuthContext);
 
-  //ALL STATES
-  // const [githubToken, setGithubToken] = useState('');
   const [ownerName, setOwnerName] = useState('');
-  const [ownerDetails, setOwnerDetails] = useState({});
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // [false, () => {}
   const [repositories, setRepositories] = useState([]);
   const [selectedRepos, setSelectedRepos] = useState([]);
   const [selectedReposBranch, setSelectedRepoBranch] = useState([]);
   const [selectedBranches, setSelectedBraches] = useState([]);
-  const [octokit, setOctokit] = useState(null);
 
   // ALL USEEFFECTS
-  // useEffect(() => {
-  //   octokit?.rest?.users?.getAuthenticated().then((response) => {
-  //     setIsAuthenticated(true);
-  //     navigate('/repository');
-  //     setOwnerDetails(response.data);
-  //     setOwnerName(response.data.login);  // Important
-  //   }).catch((error) => {
-  //     setIsAuthenticated(false);
-  //     navigate('/');
-  //     openPopup('Error In Token Login!!','error')
-  //     addActivityData({time:new Date(),type:"Error In Token Login" ,status:"error",message:error?.message});
-  //     setOwnerDetails({});
-  //   });
-
-  // }, [octokit]);
   useEffect(() => {
-    if (isAuthenticated === false) {
-      navigate('/');
-    }
-     if (isAuthenticated === true) {
-      navigate('/repository');
-    }
-  }, [isAuthenticated]);
+  if(workingInOrg===false){
+      
+    setOwnerName(ownerDetails?.login);
+    fetchRepositories();
+  }
 
-  useEffect(() => {
-    if (isAuthenticated)
-      fetchRepositories();
-  }, [isAuthenticated,octokit]);
+  }, [ownerDetails,workingInOrg]);
+  
   useEffect(() => {
 
-
-    if(isAuthenticated ===false)
-      return;
     selectedRepos.map((repo) => {
       if (!selectedReposBranch.find((branch) => branch.repoName === repo.name))
         fetchBranches(repo.name);
@@ -67,16 +42,12 @@ const RequestProvider = ({ children }) => {
     setSelectedRepoBranch(selectedReposBranch.filter(branch =>
       selectedRepos.some(repo => repo.name === branch.repoName)
     ));
-
-
   }, [selectedRepos]);
 
 
 
   //ALL HANDLERS
   const handleReposSelect = (repos) => {
-    // setSelectedRepos([...selectedRepos,repo]);
-    //only repo with unique name should be added and repos is array of objects
     const newRepos = repos.filter((repo, index) => repos.indexOf(repo) === index);
     setSelectedRepos(newRepos);
 
@@ -94,13 +65,13 @@ const RequestProvider = ({ children }) => {
       
       setRepositories(repositories);      
       console.log("repos", repositories);
-      addActivityData({time:new Date(),type:"Repositories fetched successfully!",status:"success",message:"repositories fetched"});
+      addActivityData("Repositories fetched successfully!","success","All repositories fetched");
 
 
     } catch (error) {
       // alert('Error fetching repositories');
       openPopup('Error fetching repositories', 'error');
-      addActivityData({time:new Date(),type:"Error fetching repositories",status:"error",message:error?.message});
+      addActivityData("Error fetching repositories","error",error?.message);
     }
   };
 
@@ -121,12 +92,12 @@ const RequestProvider = ({ children }) => {
         ...newBranches,
       ]);
       console.log("selectrepobranch", selectedReposBranch);
-      addActivityData({time:new Date(),type:"Branches fetched successfully!",status:"success",message:`branches fetched for ${repoName}`});      
+      addActivityData("Branches fetched successfully!","success",`branches fetched for ${repoName}`);      
       // openPopup('Branches fetched successfully!', 'success');
     } catch (error) {
       // alert('Error fetching branches');
       openPopup('Error fetching branches', 'error');
-      addActivityData({time:new Date(),type:"Error fetching branches",status:"error",message:error?.message});
+      addActivityData("Error fetching branches","error",error?.message);
 
     }
   };
@@ -139,11 +110,11 @@ const RequestProvider = ({ children }) => {
       // alert('Repository created successfully!');
       openPopup('Repository created successfully!', 'success');
       fetchRepositories();
-      addActivityData({time:new Date(),type:"Repository created successfully!",status:"success",message:`repository ${repoName} created`});
+      addActivityData("Repository created successfully!","success",`repository ${repoName} created`);
     } catch (error) {
       // alert('Error creating repository');
       openPopup('Error creating repository '+error?.message, 'error');
-      addActivityData({time:new Date(),type:"Error creating repository",status:"error",message:error?.message});
+      addActivityData("Error creating repository","error",error?.message);
     }
   };
 
@@ -157,7 +128,7 @@ const RequestProvider = ({ children }) => {
       });
       // alert('Branch added successfully!');
       openPopup('Branch added successfully!', 'success');
-      addActivityData({time:new Date(),type:"Branch added successfully!",status:"success",message:`branch ${branchName} added to ${repoName}`});
+      addActivityData("Branch added successfully!","success",`branch ${branchName} added to ${repoName}`);
 
       if(addRules){
         handleAddRules(repoName,branchName,rules);
@@ -166,7 +137,7 @@ const RequestProvider = ({ children }) => {
     } catch (error) {
       // alert('Error adding branch');
       openPopup("Error: " + error?.message, 'error');
-      addActivityData({time:new Date(),type:"Error adding branch",status:"error",message:error?.message});
+      addActivityData("Error adding branch","error",error?.message);
 
     }
   };
@@ -192,10 +163,10 @@ const RequestProvider = ({ children }) => {
         required_linear_history: rules.linearHistory || false,
       });
       openPopup('Rules added successfully!', 'success');
-      addActivityData({time:new Date(),type:"Rules added successfully!",status:"success",message:`rules added to ${branchName} of ${repoName}`});
+      addActivityData("Rules added successfully!","success",`rules added to ${branchName} of ${repoName}`);
     } catch (error) {
       openPopup("Error: " + error?.message, 'error');
-      addActivityData({time:new Date(),type:"Error adding rules",status:"error",message:error?.message});
+      addActivityData("Error adding rules","error",error?.message);
     }
   };
 
@@ -212,38 +183,22 @@ const RequestProvider = ({ children }) => {
       });
       // alert('Pull Request raised successfully!');
       openPopup('Pull Request raised successfully!', 'success');
-      addActivityData({time:new Date(),type:"Pull Request raised successfully!",status:"success",message:`pull request raised from ${fromBranch} to ${toBranch}`});
+      addActivityData("Pull Request raised successfully!","success",`pull request raised from ${fromBranch} to ${toBranch}`);
     } catch (error) {
       // alert('Error raising Pull Request');
       openPopup("Error: " + error?.message, 'error');
-      addActivityData({time:new Date(),type:"Error raising Pull Request",status:"error",message:error?.message});
+      addActivityData("Error raising Pull Request","error",error?.message);
     }
   };
-  const handleLogout = () => {
-    setIsAuthenticated(false);
 
+  const handlResetStatesOnLogout = () => {
     setOwnerName('');
-    setOwnerDetails({});
     setRepositories([]);
     setSelectedRepos([]);
     setSelectedRepoBranch([]);
     setSelectedBraches([]);
-    setOctokit(null);
-    navigate('/');
-  };
-  const handleLogin = async (ownerName, githubToken) => {
-    try {
-      const octokit = new Octokit({ auth: githubToken });
-      await octokit.rest.users.getAuthenticated();
-      setOctokit(octokit);
-      setIsAuthenticated(true);
-    } catch (error) {
-      openPopup('Error In Token Login!!' +error, 'error');
-      console.log(error);
-      addActivityData({ time: new Date(), type: "Error In Token Login", status: "error", message: error?.message });
-      setOwnerDetails({});
-    }
-  };
+  }
+
   
   //ALL CONTEXT VALUES WHICH ARE EXPORTED
   const contextValues = {
@@ -251,15 +206,12 @@ const RequestProvider = ({ children }) => {
     selectedRepos,
     selectedReposBranch,
     selectedBranches,
-    ownerDetails,
 
     handleReposSelect,
     handleBranchesSelect,
     handleCreateRepository,
     handleAddBranch,
     handleRaisePullRequest,
-    handleLogout,
-    handleLogin,
   };
   return <RequestContext.Provider value={contextValues}>{children}</RequestContext.Provider>;
 };

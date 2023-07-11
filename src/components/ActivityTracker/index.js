@@ -8,9 +8,8 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import { useContext } from 'react';
-import { TrackerContext } from '../../../utils/ContextApi/TrackerContext';
 
-const ActivityTracker = () => {
+const ActivityTracker = ({TrackerContext}) => {
   const { activityData } = useContext(TrackerContext);
   const [itemsPerPage, setItemsPerPage] = useState(10); // Number of items to display per page
   const [currentPage, setCurrentPage] = useState(1); // Current page number
@@ -34,6 +33,14 @@ const ActivityTracker = () => {
     '@media (max-width: 600px)': {
       marginBottom: '8px',
     },
+   
+    margin: '5% auto',
+    backgroundColor: 'white',
+    padding: '5%', 
+    width:'90%',
+    color: 'Black',
+    boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.5)',
+    borderRadius: '10px',
   };
 
   const headingStyle = {

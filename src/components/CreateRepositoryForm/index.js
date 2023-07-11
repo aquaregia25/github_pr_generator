@@ -1,8 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { TextField, Button, Typography } from '@mui/material';
-import { RequestContext } from '../../../utils/ContextApi/RequestContext';
 
-const RepositoryForm = () => {
+const RepositoryForm = ({RequestContext}) => {
   const { handleCreateRepository } = useContext(RequestContext);
   const [repoName, setRepoName] = useState('');
 
@@ -21,11 +20,13 @@ const RepositoryForm = () => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        margin: 'auto',
-        padding: '16px',
-        width: '80%',
-        backgroundColor: '#f8f8f8',
-        borderRadius: '4px',
+        margin: '5% auto',
+        backgroundColor: 'white',
+        padding: '5%', 
+        width:'90%',
+        color: 'Black',
+        boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.5)',
+        borderRadius: '10px',
       }}
     >
       <Typography variant="h4" component="h1" style={{ marginBottom: '24px' }}>
@@ -43,7 +44,7 @@ const RepositoryForm = () => {
         variant="contained"
         onClick={handleCreateRepositoryHandler}
         style={{
-          backgroundColor: '#1976d2',
+          backgroundColor: '#0C5B8F',
           color: '#fff',
           '&:hover': {
             backgroundColor: '#1565c0',
